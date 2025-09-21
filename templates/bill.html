@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill for Order #{{ order.id }}</title>
+</head>
+<body>
+    <h1>Bill for Order #{{ order.id }}</h1>
+    <p><strong>Status:</strong> {{ order.status }}</p>
+
+    <h2>Items</h2>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>${{ "%.2f"|format(item.price) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>Total</th>
+                <th>${{ "%.2f"|format(total_price) }}</th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <br>
+    <a href="{{ url_for('kitchen') }}">Back to Kitchen View</a>
+</body>
+</html>
