@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen View</title>
+</head>
+<body>
+    <h1>Kitchen Orders</h1>
+
+    {% for order in orders %}
+        <div id="order-{{ order.id }}">
+            <h2>Order #{{ order.id }}</h2>
+            <p><strong>Status:</strong> <span class="status-text">{{ order.status }}</span></p>
+            <ul>
+                {% for item in order.items %}
+                    <li>{{ item.name }}</li>
+                {% endfor %}
+            </ul>
+            <form class="update-form" data-order-id="{{ order.id }}" action="{{ url_for('update_status', order_id=order.id) }}" method="post" style="display: inline-block;">
+                <select name="status">
+                    {% for status in statuses %}
+                        <option value="{{ status }}" {% if status == order.status %}selected{% endif %}>
+                            {{ status.replace('_', ' ')|capitalize }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Update Status</button>
+            </form>
+            <span class="bill-link-container">
+                {% if order.status == 'completed' %}
+                    <a href="{{ url_for('bill', order_id=order.id) }}" style="margin-left: 10px;">View Bill</a>
+                {% endif %}
+            </span>
+        </div>
+        <hr>
+    {% else %}
+        <p>No orders yet.</p>
+    {% endfor %}
+    <a href="{{ url_for('menu') }}">Back to Menu</a>
+
+    <script>
+        document.querySelectorAll('.update-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const formData = new FormData(this);
+                const actionUrl = this.action;
+                const orderId = this.dataset.orderId;
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the status text on the page
+                        const statusSpan = document.querySelector(`#order-${orderId} .status-text`);
+                        statusSpan.textContent = data.new_status;
+
+                        // Update the bill link visibility
+                        const billLinkContainer = document.querySelector(`#order-${orderId} .bill-link-container`);
+                        if (data.new_status === 'completed') {
+                            billLinkContainer.innerHTML = `<a href="/bill/${orderId}" style="margin-left: 10px;">View Bill</a>`;
+                        } else {
+                            billLinkContainer.innerHTML = '';
+                        }
+                    } else {
+                        alert('Error updating status: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An unexpected error occurred.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
